@@ -5,6 +5,9 @@ echo      KHOI DONG HE THONG ERP FINANCE 3-TIER
 echo ==================================================
 echo.
 
+echo [0] Dang import du lieu tu CSV...
+python import_csv.py
+
 echo [1] Dang don dep cac tien trinh cu bi treo ngam...
 taskkill /F /IM python.exe /T >nul 2>&1
 taskkill /F /IM uvicorn.exe /T >nul 2>&1

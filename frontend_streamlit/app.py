@@ -5,16 +5,21 @@ import re
 import plotly.express as px
 from datetime import datetime
 
+
 API_URL = "http://127.0.0.1:8000"
 
+
 st.set_page_config(page_title="Hệ thống Quản trị Tài chính", layout="wide")
+
 
 # TỪ ĐIỂN ÁNH XẠ (ĐỂ VIỆT HÓA THEO GÓP Ý CỦA NAM)
 MAP_LOAI_CHI_UI = {"NHAPHANG": "Nhập hàng", "MARKETING": "Quảng cáo & Sự kiện", "LUONG": "Lương & Thưởng", "VANHANH": "Vận hành"}
 MAP_LOAI_CHI_DB = {v: k for k, v in MAP_LOAI_CHI_UI.items()}
 
+
 if "logged_in" not in st.session_state:
     st.session_state.update({"logged_in": False, "role": None, "username": None, "full_name": None})
+
 
 # ======================
 # LOGIN UI
@@ -40,6 +45,7 @@ if not st.session_state.logged_in:
                     st.error(f"Lỗi chi tiết: {e}")
     st.stop()
 
+
 # ======================
 # SIDEBAR
 # ======================
@@ -51,7 +57,9 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
 
+
 st.title("📊 HỆ THỐNG ĐIỀU HÀNH TÀI CHÍNH (API-Driven)")
+
 
 # Hàm hỗ trợ hiển thị UI Duyệt/Từ chối chung cho Kế Toán và Quản Lý
 def render_phe_duyet_ui():
@@ -70,7 +78,7 @@ def render_phe_duyet_ui():
                     c1.markdown(f"**Mã Phiếu: #{r['id']}** | Hạng mục: **{ten_loai}**")
                     c1.markdown(f"Người đề xuất: `{r['nguoi_de_xuat']}` | Ghi chú: *{r['ghi_chu']}*")
                     c1.markdown(f"Số tiền: <span style='color:red; font-size:18px; font-weight:bold;'>{r['so_tien']:,.0f} VNĐ</span>", unsafe_allow_html=True)
-                    
+                   
                     with c2.popover("Xử lý", use_container_width=True):
                         if st.button("✅ Duyệt phiếu", key=f"d_{r['id']}", use_container_width=True):
                             requests.put(f"{API_URL}/api/chi/status", json={"id": r['id'], "trang_thai": "ĐÃ DUYỆT", "nguoi_duyet": st.session_state.username})
@@ -84,12 +92,13 @@ def render_phe_duyet_ui():
                                 requests.put(f"{API_URL}/api/chi/status", json={"id": r['id'], "trang_thai": "TỪ CHỐI", "nguoi_duyet": st.session_state.username, "ly_do": ly_do})
                                 st.rerun()
 
+
 # ======================
 # ROLE: BANHANG
 # ======================
 if st.session_state.role == "BANHANG":
     t1, t2 = st.tabs(["🛒 Lập Phiếu Thu", "📝 Tạo Phiếu Chi"])
-    
+   
     with t1:
         with st.form("thu_form"):
             c1, c2 = st.columns(2)
@@ -99,17 +108,17 @@ if st.session_state.role == "BANHANG":
                 c1.info(f"Xác nhận: **{tien:,.0f} VNĐ**")
             except:
                 tien = 0
-            
+           
             kenh = c1.selectbox("Kênh bán hàng", ["POS", "WEB", "APP"])
             pt = c2.selectbox("Phương thức thanh toán", ["TIỀN MẶT", "CHUYỂN KHOẢN", "QUẸT THẺ"])
             note = c2.text_input("Ghi chú")
-            
+           
             if st.form_submit_button("Lưu Phiếu Thu") and tien > 0:
                 payload = {"so_tien": tien, "ma_kenh": kenh, "phuong_thuc": pt, "nguoi_nhap": st.session_state.username, "ghi_chu": note}
                 r = requests.post(f"{API_URL}/api/thu", json=payload)
                 data_r = r.json()
                 st.success(f"Tạo thành công! Mã phiếu thu: #{data_r.get('id', 'N/A')} - {datetime.now().strftime('%d/%m/%Y %H:%M')}")
-                
+               
     with t2:
         with st.form("chi_form"):
             loai_ui = st.selectbox("Hạng mục chi", list(MAP_LOAI_CHI_UI.values()))
@@ -120,29 +129,31 @@ if st.session_state.role == "BANHANG":
                 r = requests.post(f"{API_URL}/api/chi", json=payload)
                 st.success(f"Đã gửi yêu cầu lên cấp trên! Mã phiếu: #{r.json().get('id')}")
 
+
 # ======================
 # ROLE: KETOAN
 # ======================
 elif st.session_state.role == "KETOAN":
     tab1, tab2, tab3 = st.tabs(["Xử lý Phê duyệt", "Sổ cái Giao dịch", "Import Excel"])
-    
+   
     with tab1:
         render_phe_duyet_ui()
+
 
     with tab2:
         # Lấy dữ liệu Thu & Chi để quản lý
         df_thu = pd.DataFrame(requests.get(f"{API_URL}/api/thu").json())
         df_chi = pd.DataFrame(requests.get(f"{API_URL}/api/chi").json())
-        
+       
         c1, c2 = st.columns(2)
         voi_loai = c1.selectbox("Xem bảng dữ liệu", ["Giao dịch Chi", "Giao dịch Thu"])
-        
+       
         # BỘ LỌC CHUNG CHO SỔ CÁI
         if voi_loai == "Giao dịch Chi" and not df_chi.empty:
             trang_thai_loc = c2.selectbox("Lọc Trạng thái", ["Tất cả", "ĐÃ DUYỆT", "CHỜ DUYỆT", "TỪ CHỐI"])
             if trang_thai_loc != "Tất cả":
                 df_chi = df_chi[df_chi["trang_thai"] == trang_thai_loc]
-            
+           
             st.dataframe(
                 df_chi,
                 column_config={
@@ -152,7 +163,7 @@ elif st.session_state.role == "KETOAN":
                 },
                 use_container_width=True
             )
-            
+           
         elif voi_loai == "Giao dịch Thu" and not df_thu.empty:
             st.dataframe(
                 df_thu,
@@ -164,36 +175,118 @@ elif st.session_state.role == "KETOAN":
                 use_container_width=True
             )
 
+
     with tab3:
-        st.subheader("Nhập liệu hàng loạt (Thu/Chi) qua Excel")
-        st.markdown("*Lưu ý: Cấu trúc file Excel cần có các cột: `loai_giao_dich` (THU/CHI), `so_tien`, `ma_kenh_hoac_loai` (POS/WEB/NHAPHANG...), `ghi_chu`.*")
-        uploaded_file = st.file_uploader("Kéo thả file .xlsx vào đây", type=["xlsx"])
+        st.subheader("Nhập liệu hàng loạt (Thu/Chi) qua Excel/CSV")
+        st.markdown("*Lưu ý: Cấu trúc file cần có các cột: `loai_giao_dich` (THU/CHI), `so_tien`, `ma_kenh_hoac_loai` (POS/WEB/NHAPHANG...), `ghi_chu`.*")
+
+        # Hiển thị template mẫu
+        st.markdown("**📋 Template mẫu:**")
+        sample_data = {
+            'loai_giao_dich': ['THU', 'CHI', 'THU'],
+            'so_tien': [1000000, 500000, 2000000],
+            'ma_kenh_hoac_loai': ['POS', 'NHAPHANG', 'WEB'],
+            'ghi_chu': ['Thu tiền bán hàng', 'Nhập hàng tháng 4', 'Đơn online']
+        }
+        sample_df = pd.DataFrame(sample_data)
+        st.dataframe(sample_df, use_container_width=False)
+
+        uploaded_file = st.file_uploader("Kéo thả file .xlsx hoặc .csv vào đây", type=["xlsx", "csv"])
         if uploaded_file is not None:
             try:
-                df_ex = pd.read_excel(uploaded_file)
+                # Xác định định dạng file và đọc tương ứng
+                if uploaded_file.name.endswith('.xlsx'):
+                    df_ex = pd.read_excel(uploaded_file)
+                elif uploaded_file.name.endswith('.csv'):
+                    df_ex = pd.read_csv(uploaded_file)
+                else:
+                    st.error("Chỉ hỗ trợ file .xlsx hoặc .csv")
+                    st.stop()
+
+                # Kiểm tra các cột bắt buộc
+                required_columns = ['loai_giao_dich', 'so_tien', 'ma_kenh_hoac_loai']
+                missing_columns = [col for col in required_columns if col not in df_ex.columns]
+
+                if missing_columns:
+                    st.error(f"❌ File thiếu các cột bắt buộc: {', '.join(missing_columns)}")
+                    st.info(f"📋 Các cột hiện có trong file: {', '.join(df_ex.columns.tolist())}")
+                    st.stop()
+
+                # Kiểm tra dữ liệu rỗng
+                if df_ex.empty:
+                    st.error("❌ File không có dữ liệu!")
+                    st.stop()
+
+                st.success(f"✅ File hợp lệ! Đã đọc {len(df_ex)} dòng dữ liệu.")
                 st.write("Bản xem trước dữ liệu:")
                 st.dataframe(df_ex.head())
-                if st.button("Xác nhận Đẩy lên Hệ thống"):
+
+                # Thống kê dữ liệu
+                thu_count = len(df_ex[df_ex['loai_giao_dich'].str.upper() == 'THU'])
+                chi_count = len(df_ex[df_ex['loai_giao_dich'].str.upper() == 'CHI'])
+                st.info(f"📊 Phát hiện: {thu_count} giao dịch THU, {chi_count} giao dịch CHI")
+
+                if st.button("Xác nhận Đẩy lên Hệ thống", type="primary"):
                     count_thu, count_chi = 0, 0
-                    for _, row in df_ex.iterrows():
-                        if row['loai_giao_dich'] == 'THU':
-                            payload = {"so_tien": row['so_tien'], "ma_kenh": row['ma_kenh_hoac_loai'], "phuong_thuc": "TIỀN MẶT", "nguoi_nhap": st.session_state.username, "ghi_chu": str(row.get('ghi_chu', ''))}
-                            requests.post(f"{API_URL}/api/thu", json=payload)
-                            count_thu += 1
-                        elif row['loai_giao_dich'] == 'CHI':
-                            payload = {"ma_loai": row['ma_kenh_hoac_loai'], "so_tien": row['so_tien'], "nguoi_de_xuat": st.session_state.username, "ghi_chu": str(row.get('ghi_chu', ''))}
-                            requests.post(f"{API_URL}/api/chi", json=payload)
-                            count_chi += 1
-                    st.success(f"Đã import thành công {count_thu} giao dịch Thu và {count_chi} giao dịch Chi!")
+                    errors = []
+
+                    for idx, row in df_ex.iterrows():
+                        try:
+                            loai_gd = str(row['loai_giao_dich']).strip().upper()
+                            if loai_gd == 'THU':
+                                payload = {
+                                    "so_tien": float(row['so_tien']),
+                                    "ma_kenh": str(row['ma_kenh_hoac_loai']).strip(),
+                                    "phuong_thuc": "TIỀN MẶT",
+                                    "nguoi_nhap": st.session_state.username,
+                                    "ghi_chu": str(row.get('ghi_chu', ''))
+                                }
+                                response = requests.post(f"{API_URL}/api/thu", json=payload)
+                                if response.status_code == 200:
+                                    count_thu += 1
+                                else:
+                                    errors.append(f"Dòng {idx+1}: Lỗi THU - {response.text}")
+
+                            elif loai_gd == 'CHI':
+                                payload = {
+                                    "ma_loai": str(row['ma_kenh_hoac_loai']).strip(),
+                                    "so_tien": float(row['so_tien']),
+                                    "nguoi_de_xuat": st.session_state.username,
+                                    "ghi_chu": str(row.get('ghi_chu', ''))
+                                }
+                                response = requests.post(f"{API_URL}/api/chi", json=payload)
+                                if response.status_code == 200:
+                                    count_chi += 1
+                                else:
+                                    errors.append(f"Dòng {idx+1}: Lỗi CHI - {response.text}")
+                            else:
+                                errors.append(f"Dòng {idx+1}: Loại giao dịch không hợp lệ '{row['loai_giao_dich']}' (chỉ chấp nhận THU/CHI)")
+
+                        except Exception as e:
+                            errors.append(f"Dòng {idx+1}: Lỗi xử lý - {str(e)}")
+
+                    # Hiển thị kết quả
+                    if count_thu + count_chi > 0:
+                        st.success(f"✅ Đã import thành công {count_thu} giao dịch Thu và {count_chi} giao dịch Chi!")
+
+                    if errors:
+                        st.warning("⚠️ Một số dòng có lỗi:")
+                        for error in errors[:5]:  # Hiển thị tối đa 5 lỗi
+                            st.error(error)
+                        if len(errors) > 5:
+                            st.warning(f"... và {len(errors) - 5} lỗi khác")
+
             except Exception as e:
-                st.error(f"Lỗi đọc file: {e}")
+                st.error(f"❌ Lỗi đọc file: {str(e)}")
+                st.info("💡 Kiểm tra lại định dạng file và cấu trúc cột!")
+
 
 # ======================
 # ROLE: QUANLY
 # ======================
 elif st.session_state.role == "QUANLY":
     t1, t2 = st.tabs(["📊 Dashboard Data Warehouse", "✅ Phê duyệt Chi phí"])
-    
+   
     with t1:
         st.subheader("Báo Cáo Data Warehouse (ETL)")
         res = requests.get(f"{API_URL}/api/dashboard")
@@ -205,24 +298,26 @@ elif st.session_state.role == "QUANLY":
                 c_loc1, c_loc2 = st.columns(2)
                 start_date = c_loc1.date_input("Từ ngày", df_dw['ngay'].min())
                 end_date = c_loc2.date_input("Đến ngày", df_dw['ngay'].max())
-                
+               
                 # Lọc Data
                 mask = (df_dw['ngay'].dt.date >= start_date) & (df_dw['ngay'].dt.date <= end_date)
                 df_filtered = df_dw.loc[mask]
+
 
                 # Thẻ KPI
                 c1, c2, c3 = st.columns(3)
                 c1.metric("Tổng Thu", f"{df_filtered['tong_thu'].sum():,.0f} ₫")
                 c2.metric("Tổng Chi (Đã duyệt)", f"{df_filtered['tong_chi_da_duyet'].sum():,.0f} ₫")
-                c3.metric("Lợi nhuận Thuần", f"{df_filtered['loi_nhuan'].sum():,.0f} ₫", 
+                c3.metric("Lợi nhuận Thuần", f"{df_filtered['loi_nhuan'].sum():,.0f} ₫",
                           delta="Có Lãi" if df_filtered['loi_nhuan'].sum() > 0 else "Lỗ")
 
-                # Vẽ Biểu đồ 
+
+                # Vẽ Biểu đồ
                 col_chart1, col_chart2 = st.columns([2, 1])
                 with col_chart1:
                     fig_bar = px.bar(df_filtered, x="ngay", y=["tong_thu", "tong_chi_da_duyet"], barmode="group", title="Biến động Thu - Chi theo ngày", labels={"value": "VNĐ", "variable": "Hạng mục", "ngay": "Ngày"})
                     st.plotly_chart(fig_bar, use_container_width=True)
-                
+               
                 with col_chart2:
                     # Biểu đồ cơ cấu (Theo góp ý của Nguyên)
                     df_pie = pd.DataFrame({
@@ -232,13 +327,15 @@ elif st.session_state.role == "QUANLY":
                     fig_pie = px.pie(df_pie, names="Hạng mục", values="Giá trị", title="Cơ cấu Dòng tiền", hole=0.4, color="Hạng mục", color_discrete_map={"Tổng Thu": "blue", "Tổng Chi": "red"})
                     st.plotly_chart(fig_pie, use_container_width=True)
 
+
                 # Bảng dữ liệu đã Việt Hóa và Format
                 st.markdown("##### Chi tiết Báo Cáo")
-                
+               
                 # Hàm tô màu Lãi/Lỗ
                 def color_profit(val):
                     color = 'green' if val == 'LÃI' else 'red' if val == 'LỖ' else 'black'
                     return f'color: {color}; font-weight: bold'
+
 
                 st.dataframe(
                     df_filtered.style.map(color_profit, subset=['trang_thai_loi_nhuan']).format({"tong_thu": "{:,.0f} ₫", "tong_chi_da_duyet": "{:,.0f} ₫", "loi_nhuan": "{:,.0f} ₫", "ngay": lambda x: x.strftime('%d-%m-%Y')}),
@@ -246,6 +343,7 @@ elif st.session_state.role == "QUANLY":
                 )
             else:
                 st.warning("Data Warehouse trống. Cần chạy ETL trên Backend.")
+
 
     with t2:
         # Kéo hàm Phê duyệt chung (Quản lý duyệt cùng Kế toán trưởng)
