@@ -64,3 +64,56 @@ INSERT INTO dim_cua_hang (ten_cua_hang) VALUES ('CH 01 - Cầu Giấy'), ('CH 02
 INSERT INTO dim_kenh_ban (ten_kenh) VALUES ('POS Cửa hàng'), ('Website'), ('Shopee/Tiktok');
 INSERT INTO dim_phuong_thuc_tt (ten_phuong_thuc) VALUES ('Tiền mặt/Voucher'), ('Chuyển khoản (QR)'), ('Thẻ tín dụng');
 INSERT INTO dim_loai_chi (ten_loai) VALUES ('Chi phí Nhập hàng'), ('Chi phí Lương'), ('Chi phí Marketing'), ('Chi phí Vận hành');
+
+
+
+
+-- Bổ sung trạng thái cho bảng Thu để hỗ trợ tính năng Hủy/Điều chỉnh
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS trang_thai VARCHAR(20) DEFAULT 'HOÀN THÀNH';
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS ly_do_huy TEXT;
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS nguoi_huy_id INT REFERENCES users(id);
+
+-- Bổ sung cột lưu vết người hủy cho bảng Chi
+ALTER TABLE giao_dich_chi ADD COLUMN IF NOT EXISTS ly_do_huy TEXT;
+ALTER TABLE giao_dich_chi ADD COLUMN IF NOT EXISTS nguoi_huy_id INT REFERENCES users(id);
+
+
+
+-- 1. Bổ sung cột ghi chú cho bảng Thu (để lưu thông tin khi chọn "Khác")
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS ghi_chu TEXT;
+
+-- 2. Thêm danh mục "Khác" vào các bảng nền
+INSERT INTO dim_cua_hang (ten_cua_hang) VALUES ('Khác'); 
+INSERT INTO dim_kenh_ban (ten_kenh) VALUES ('Khác'); 
+INSERT INTO dim_phuong_thuc_tt (ten_phuong_thuc) VALUES ('Khác'); 
+INSERT INTO dim_loai_chi (ten_loai) VALUES ('Khác'); 
+
+-- 3. Nạp dữ liệu giả lập cho tháng 04/2026 (Thời gian thực)
+INSERT INTO giao_dich_thu (ngay_tao, so_tien, cua_hang_id, kenh_id, pttt_id, nguoi_tao_id, trang_thai) VALUES
+('2026-04-10 08:30:00', 2500000, 1, 1, 1, 1, 'HOÀN THÀNH'),
+('2026-04-11 14:15:00', 5400000, 2, 2, 2, 1, 'HOÀN THÀNH'),
+('2026-04-12 09:45:00', 1200000, 1, 3, 3, 1, 'HOÀN THÀNH'),
+('2026-04-13 16:20:00', 8900000, 2, 1, 3, 1, 'HOÀN THÀNH'),
+('2026-04-14 10:10:00', 3200000, 1, 2, 2, 1, 'HOÀN THÀNH'),
+('2026-04-15 09:00:00', 4500000, 2, 3, 1, 1, 'HOÀN THÀNH');
+
+INSERT INTO giao_dich_chi (ngay_tao, so_tien, loai_chi_id, pttt_id, nguoi_tao_id, trang_thai, nguoi_duyet_id) VALUES
+('2026-04-10 10:00:00', 1500000, 1, 2, 1, 'ĐÃ DUYỆT', 2),
+('2026-04-11 11:30:00', 800000, 2, 1, 1, 'ĐÃ DUYỆT', 2),
+('2026-04-12 15:00:00', 3000000, 3, 2, 1, 'TỪ CHỐI', 2),
+('2026-04-13 09:15:00', 500000, 4, 1, 1, 'ĐÃ DUYỆT', 2),
+('2026-04-14 14:20:00', 1200000, 1, 3, 1, 'CHỜ DUYỆT', NULL),
+('2026-04-15 08:45:00', 2000000, 2, 2, 1, 'CHỜ DUYỆT', NULL);
+
+
+-- 1. Bổ sung trạng thái và thông tin hủy cho bảng Thu
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS trang_thai VARCHAR(20) DEFAULT 'HOÀN THÀNH';
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS ly_do_huy TEXT;
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS nguoi_huy_id INT REFERENCES users(id);
+
+-- 2. Bổ sung thông tin hủy cho bảng Chi
+ALTER TABLE giao_dich_chi ADD COLUMN IF NOT EXISTS ly_do_huy TEXT;
+ALTER TABLE giao_dich_chi ADD COLUMN IF NOT EXISTS nguoi_huy_id INT REFERENCES users(id);
+
+-- 3. Cập nhật lại những dòng cũ (nếu có) bị null trạng thái thành HOÀN THÀNH
+UPDATE giao_dich_thu SET trang_thai = 'HOÀN THÀNH' WHERE trang_thai IS NULL;
