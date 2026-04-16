@@ -4,7 +4,7 @@ import requests
 import plotly.express as px
 import time
 
-API_URL = "http://127.0.0.1:8001"
+API_URL = "http://127.0.0.1:8000"
 st.set_page_config(page_title="Hệ thống Quản trị Tài chính", layout="wide")
 
 MAP_CUA_HANG = {"Cơ sở 01 - Cầu Giấy": 1, "Cơ sở 02 - Quận 1": 2, "Khác": 3}
@@ -32,7 +32,7 @@ if "toast_msg" in st.session_state:
 @st.dialog("Xác nhận Xử lý Chứng từ")
 def confirm_approval_dialog(p_id, action, ly_do, nguoi_duyet_id):
     st.write(f"Thao tác hiện tại: **{'DUYỆT' if action == 'DUYET' else 'TỪ CHỐI'}** chứng từ mã PC-{p_id:05d}.")
-    if action == "TUCHOI" and not ly_do.strip():
+    if action == "TUCHOI" and (ly_do is None or not ly_do.strip()):
         st.error("Yêu cầu nhập ghi chú lý do khi thực hiện từ chối chứng từ.")
     else:
         st.write("Vui lòng xác nhận để ghi nhận dữ liệu vào hệ thống.")
