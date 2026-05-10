@@ -38,6 +38,8 @@ CREATE TABLE giao_dich_chi (
     ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     so_tien NUMERIC(15,2),
     loai_chi_id INT REFERENCES dim_loai_chi(id),
+    cua_hang_id INT REFERENCES dim_cua_hang(id),
+    kenh_id INT REFERENCES dim_kenh_ban(id),
     pttt_id INT REFERENCES dim_phuong_thuc_tt(id),
     nguoi_tao_id INT REFERENCES users(id),
     trang_thai VARCHAR(20) DEFAULT 'CHỜ DUYỆT',
@@ -117,3 +119,19 @@ ALTER TABLE giao_dich_chi ADD COLUMN IF NOT EXISTS nguoi_huy_id INT REFERENCES u
 
 -- 3. Cập nhật lại những dòng cũ (nếu có) bị null trạng thái thành HOÀN THÀNH
 UPDATE giao_dich_thu SET trang_thai = 'HOÀN THÀNH' WHERE trang_thai IS NULL;
+
+-- 4. Bổ sung các cột mới cho giao_dich_thu
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'VND';
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS kenh_mo_ta TEXT;
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS pttt_mo_ta TEXT;
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS voucher_percentage INT;
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS mo_ta_giao_dich TEXT;
+ALTER TABLE giao_dich_thu ADD COLUMN IF NOT EXISTS tra_cham_tra_gop TEXT;
+
+-- 5. Bổ sung các cột mới cho giao_dich_chi
+ALTER TABLE giao_dich_chi ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'VND';
+ALTER TABLE giao_dich_chi ADD COLUMN IF NOT EXISTS kenh_mo_ta TEXT;
+ALTER TABLE giao_dich_chi ADD COLUMN IF NOT EXISTS pttt_mo_ta TEXT;
+ALTER TABLE giao_dich_chi ADD COLUMN IF NOT EXISTS voucher_percentage INT;
+ALTER TABLE giao_dich_chi ADD COLUMN IF NOT EXISTS mo_ta_giao_dich TEXT;
+ALTER TABLE giao_dich_chi ADD COLUMN IF NOT EXISTS tra_cham_tra_gop TEXT;

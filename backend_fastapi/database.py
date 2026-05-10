@@ -13,5 +13,5 @@ def get_conn():
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASS"),
         port=os.getenv("DB_PORT"),
-        sslmode="require"
+        sslmode=os.getenv("DB_SSLMODE", "prefer")
     )

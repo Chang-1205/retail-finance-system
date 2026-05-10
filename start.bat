@@ -14,7 +14,7 @@ taskkill /F /IM uvicorn.exe /T >nul 2>&1
 timeout /t 2 /nobreak >nul
 
 echo [2] Dang bat Nha Bep (Backend API)...
-start "Backend API (KHONG TAT)" cmd /k "cd backend_fastapi && ..\venv\Scripts\activate && uvicorn main:app --host 127.0.0.1 --port 8000"
+start "Backend API (KHONG TAT)" cmd /k "cd backend_fastapi && ..\venv\Scripts\activate && uvicorn main:app --host 127.0.0.1 --port 8001"
 
 echo [3] Doi 3 giay de nha bep nong may...
 timeout /t 3 /nobreak >nul
