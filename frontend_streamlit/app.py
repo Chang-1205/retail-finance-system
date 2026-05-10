@@ -276,8 +276,7 @@ if st.session_state.role == "BANHANG":
             pt_options = [k for k in MAP_PTTT.keys()]
             pt = c3.selectbox("Phương thức thanh toán", pt_options)
             pttt_mo_ta = None
-            if pt == "Khác":
-                pttt_mo_ta = c3.text_input("Mô tả phương thức thanh toán khác", placeholder="Ví dụ: PayPal, GG Pay, Thanh toán quốc tế...")
+            pttt_mo_ta = c3.text_input("Mô tả phương thức thanh toán khác", placeholder="Ví dụ: PayPal, GG Pay, Thanh toán quốc tế...")
             
             voucher_options = ["Không áp dụng"] + [f"{i}%" for i in range(5, 101, 5)]
             voucher_selected = st.selectbox("Voucher", voucher_options)
@@ -345,14 +344,12 @@ if st.session_state.role == "BANHANG":
             kenh_chi_options = [k for k in MAP_KENH.keys()]
             kenh_chi = c2.selectbox("Kênh phân phối", kenh_chi_options)
             kenh_mo_ta_chi = None
-            if kenh_chi == "Khác":
-                kenh_mo_ta_chi = c2.text_input("Mô tả kênh phân phối khác", placeholder="Ví dụ: chi phí từ đầu tư, vốn góp, dịch vụ thuê...")
+            kenh_mo_ta_chi = c2.text_input("Mô tả kênh phân phối khác", placeholder="Ví dụ: chi phí từ đầu tư, vốn góp, dịch vụ thuê...")
 
             pt_chi_options = [k for k in MAP_PTTT.keys()]
             pt_chi = c3.selectbox("Phương thức thanh toán", pt_chi_options)
             pttt_mo_ta_chi = None
-            if pt_chi == "Khác":
-                pttt_mo_ta_chi = c3.text_input("Mô tả phương thức thanh toán khác", placeholder="Ví dụ: PayPal, GG Pay, Thanh toán quốc tế...")
+            pttt_mo_ta_chi = c3.text_input("Mô tả phương thức thanh toán khác", placeholder="Ví dụ: PayPal, GG Pay, Thanh toán quốc tế...")
 
             voucher_options_chi = ["Không áp dụng"] + [f"{i}%" for i in range(5, 101, 5)]
             voucher_selected_chi = st.selectbox("Voucher", voucher_options_chi)
