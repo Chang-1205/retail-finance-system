@@ -176,12 +176,12 @@ def confirm_approval_dialog(p_id, loai_phieu, action, ly_do, nguoi_duyet_id):
     st.write(f"Thao tác hiện tại: **{'DUYỆT' if action == 'DUYET' else 'TỪ CHỐI'}** chứng từ mã {loai_phieu}-{p_id:05d}.")
     if ly_do is None or not ly_do.strip():
         st.error("Vui lòng nhập lý do xử lý chứng từ trước khi xác nhận.")
-        if st.button("Đóng", width="stretch"):
+        if st.button("Đóng", use_container_width=True):
             st.rerun()
         return
     st.write("Vui lòng xác nhận để ghi nhận dữ liệu vào hệ thống.")
     c1, c2 = st.columns(2)
-    if c1.button("Xác nhận", type="primary", width="stretch"):
+    if c1.button("Xác nhận", type="primary", use_container_width=True):
         status = "ĐÃ DUYỆT" if action == "DUYET" else "TỪ CHỐI"
         endpoint = "/api/thu/status" if loai_phieu == "THU" else "/api/chi/status"
         res = requests.put(f"{API_URL}{endpoint}", json={"id": p_id, "trang_thai": status, "ly_do": ly_do, "nguoi_duyet_id": nguoi_duyet_id})
@@ -191,7 +191,7 @@ def confirm_approval_dialog(p_id, loai_phieu, action, ly_do, nguoi_duyet_id):
             st.rerun()
         else:
             st.error("Không thể cập nhật chứng từ. Vui lòng thử lại.")
-    if c2.button("Đóng", width="stretch"):
+    if c2.button("Đóng", use_container_width=True):
         st.rerun()
 
 @st.dialog("Xác nhận Hủy Chứng từ")
@@ -202,13 +202,13 @@ def confirm_void_dialog(p_id, loai_phieu, ly_do_huy, nguoi_huy_id):
         st.error("Yêu cầu cung cấp diễn giải lý do hủy.")
     else:
         c1, c2 = st.columns(2)
-        if c1.button("Xác nhận Hủy", type="primary", width="stretch"):
+        if c1.button("Xác nhận Hủy", type="primary", use_container_width=True):
             loai_upper = loai_phieu.upper() if isinstance(loai_phieu, str) else loai_phieu
             endpoint = "/api/thu/void" if "THU" in loai_upper else "/api/chi/void"
             requests.put(f"{API_URL}{endpoint}", json={"id": p_id, "ly_do": ly_do_huy, "nguoi_huy_id": nguoi_huy_id})
             st.session_state.toast_msg = "Hủy chứng từ thành công."
             st.rerun()
-        if c2.button("Đóng", width="stretch"):
+        if c2.button("Đóng", use_container_width=True):
             st.rerun()
 
 # ==========================================
@@ -222,7 +222,7 @@ if not st.session_state.logged_in:
         with st.form("login_form"):
             u = st.text_input("Tên đăng nhập")
             p = st.text_input("Mật khẩu", type="password")
-            if st.form_submit_button("Truy cập", width="stretch"):
+            if st.form_submit_button("Truy cập", use_container_width=True):
                 try:
                     res = requests.post(f"{API_URL}/api/auth/login", json={"username": u.strip(), "password": p.strip()})
                     if res.status_code == 200:
@@ -245,7 +245,7 @@ with st.sidebar:
     st.caption(f"Chức vụ: {st.session_state.role}")
     st.session_state.currency = st.selectbox("Định dạng tiền tệ", ["VND", "USD"])
     st.divider()
-    if st.button("Đăng xuất", width="stretch"):
+    if st.button("Đăng xuất", use_container_width=True):
         st.session_state.clear()
         st.rerun()
 
@@ -276,7 +276,8 @@ if st.session_state.role == "BANHANG":
             pt_options = [k for k in MAP_PTTT.keys()]
             pt = c3.selectbox("Phương thức thanh toán", pt_options)
             pttt_mo_ta = None
-            pttt_mo_ta = c3.text_input("Mô tả phương thức thanh toán khác", placeholder="Ví dụ: PayPal, GG Pay, Thanh toán quốc tế...")
+            if pt == "Khác":
+                pttt_mo_ta = c3.text_input("Mô tả phương thức thanh toán khác", placeholder="Ví dụ: PayPal, GG Pay, Thanh toán quốc tế...")
             
             voucher_options = ["Không áp dụng"] + [f"{i}%" for i in range(5, 101, 5)]
             voucher_selected = st.selectbox("Voucher", voucher_options)
@@ -344,12 +345,14 @@ if st.session_state.role == "BANHANG":
             kenh_chi_options = [k for k in MAP_KENH.keys()]
             kenh_chi = c2.selectbox("Kênh phân phối", kenh_chi_options)
             kenh_mo_ta_chi = None
-            kenh_mo_ta_chi = c2.text_input("Mô tả kênh phân phối khác", placeholder="Ví dụ: chi phí từ đầu tư, vốn góp, dịch vụ thuê...")
+            if kenh_chi == "Khác":
+                kenh_mo_ta_chi = c2.text_input("Mô tả kênh phân phối khác", placeholder="Ví dụ: chi phí từ đầu tư, vốn góp, dịch vụ thuê...")
 
             pt_chi_options = [k for k in MAP_PTTT.keys()]
             pt_chi = c3.selectbox("Phương thức thanh toán", pt_chi_options)
             pttt_mo_ta_chi = None
-            pttt_mo_ta_chi = c3.text_input("Mô tả phương thức thanh toán khác", placeholder="Ví dụ: PayPal, GG Pay, Thanh toán quốc tế...")
+            if pt_chi == "Khác":
+                pttt_mo_ta_chi = c3.text_input("Mô tả phương thức thanh toán khác", placeholder="Ví dụ: PayPal, GG Pay, Thanh toán quốc tế...")
 
             voucher_options_chi = ["Không áp dụng"] + [f"{i}%" for i in range(5, 101, 5)]
             voucher_selected_chi = st.selectbox("Voucher", voucher_options_chi)
@@ -414,13 +417,8 @@ elif st.session_state.role == "KETOAN":
     with tabs[0]:
         st.subheader("Xét duyệt Chứng từ Doanh thu và Chi phí")
 
-        # ds_thu = requests.get(f"{API_URL}/api/thu/pending").json()
-        response = requests.get(f"{API_URL}/api/chi/pending")
-
-        print(response.status_code)
-        print(response.text)
-
-        ds_chi = response.json()
+        ds_thu = requests.get(f"{API_URL}/api/thu/pending").json()
+        ds_chi = requests.get(f"{API_URL}/api/chi/pending").json()
 
         st.markdown("#### Phiếu thu chờ duyệt")
         if not ds_thu:
@@ -430,9 +428,9 @@ elif st.session_state.role == "KETOAN":
                 c_a, c_b = st.columns([3, 1])
                 ly_do = c_a.text_input("Ghi chú xử lý:", key=f"lydo_thu_{p['id']}", value=p['ghi_chu'])
                 col1, col2 = c_b.columns(2)
-                if col1.button("Duyệt", key=f"btn_duyet_thu_{p['id']}", width="stretch"):
+                if col1.button("Duyệt", key=f"btn_duyet_thu_{p['id']}", use_container_width=True):
                     confirm_approval_dialog(p['id'], "THU", "DUYET", ly_do, st.session_state.id)
-                if col2.button("Từ chối", key=f"btn_tuchoi_thu_{p['id']}", width="stretch"):
+                if col2.button("Từ chối", key=f"btn_tuchoi_thu_{p['id']}", use_container_width=True):
                     confirm_approval_dialog(p['id'], "THU", "TUCHOI", ly_do, st.session_state.id)
 
         st.markdown("#### Phiếu chi chờ duyệt")
@@ -443,9 +441,9 @@ elif st.session_state.role == "KETOAN":
                 c_a, c_b = st.columns([3, 1])
                 ly_do = c_a.text_input("Ghi chú xử lý:", key=f"lydo_chi_{p['id']}", value=p['ghi_chu'])
                 col1, col2 = c_b.columns(2)
-                if col1.button("Duyệt", key=f"btn_duyet_chi_{p['id']}", width="stretch"):
+                if col1.button("Duyệt", key=f"btn_duyet_chi_{p['id']}", use_container_width=True):
                     confirm_approval_dialog(p['id'], "CHI", "DUYET", ly_do, st.session_state.id)
-                if col2.button("Từ chối", key=f"btn_tuchoi_chi_{p['id']}", width="stretch"):
+                if col2.button("Từ chối", key=f"btn_tuchoi_chi_{p['id']}", use_container_width=True):
                     confirm_approval_dialog(p['id'], "CHI", "TUCHOI", ly_do, st.session_state.id)
 
         st.divider()
@@ -465,7 +463,7 @@ elif st.session_state.role == "KETOAN":
                 'ghi_chu': 'Ghi chú',
                 'currency': 'Tiền tệ'
             })
-            st.dataframe(df_thu_proc[['Mã hệ thống', 'Thời gian', 'Giá trị', 'Tiền tệ', 'Trạng thái', 'Nhân sự xử lý', 'Ghi chú']], width="stretch", hide_index=True)
+            st.dataframe(df_thu_proc[['Mã hệ thống', 'Thời gian', 'Giá trị', 'Tiền tệ', 'Trạng thái', 'Nhân sự xử lý', 'Ghi chú']], use_container_width=True, hide_index=True)
         if ds_chi_processed:
             st.markdown("**Phiếu chi đã xử lý**")
             df_chi_proc = pd.DataFrame(ds_chi_processed)
@@ -479,7 +477,7 @@ elif st.session_state.role == "KETOAN":
                 'ghi_chu': 'Ghi chú',
                 'currency': 'Tiền tệ'
             })
-            st.dataframe(df_chi_proc[['Mã hệ thống', 'Thời gian', 'Giá trị', 'Tiền tệ', 'Trạng thái', 'Nhân sự xử lý', 'Ghi chú']], width="stretch", hide_index=True)
+            st.dataframe(df_chi_proc[['Mã hệ thống', 'Thời gian', 'Giá trị', 'Tiền tệ', 'Trạng thái', 'Nhân sự xử lý', 'Ghi chú']], use_container_width=True, hide_index=True)
         if not ds_thu_processed and not ds_chi_processed:
             st.caption("Chưa có chứng từ đã xử lý để hiển thị.")
 
@@ -514,7 +512,7 @@ elif st.session_state.role == "KETOAN":
                 'currency': 'Tiền tệ',
                 'ly_do': 'Diễn giải'
             })
-            st.dataframe(df_void[['Phân loại', 'Mã tham chiếu', 'Giá trị', 'Tiền tệ', 'Diễn giải']], width="stretch", hide_index=True)
+            st.dataframe(df_void[['Phân loại', 'Mã tham chiếu', 'Giá trị', 'Tiền tệ', 'Diễn giải']], use_container_width=True, hide_index=True)
 
     with tabs[2]:
         st.subheader("Nạp Dữ liệu Đối soát Hệ thống")
@@ -548,7 +546,7 @@ elif st.session_state.role == "KETOAN":
 
         if st.session_state.get('import_preview') is not None:
             st.subheader("Xem trước dữ liệu")
-            st.dataframe(st.session_state.import_preview, width="stretch")
+            st.dataframe(st.session_state.import_preview, use_container_width=True)
             if st.button("Thực thi nạp dữ liệu", type="primary"):
                 df = st.session_state.import_df
                 payload = []
@@ -595,7 +593,7 @@ elif st.session_state.role == "KETOAN":
         c1, c2 = st.columns([4, 1])
         c1.markdown("<div style='background:#eef7ff; padding:10px; border-radius:10px;'>Danh mục hệ thống được làm mới từ database. Nếu bạn đã cập nhật dữ liệu, hãy nhấn nút Tải lại để nhận danh mục mới nhất.</div>", unsafe_allow_html=True)
         c2.write("")
-        if c2.button("Tải lại dữ liệu", width="stretch"):
+        if c2.button("Tải lại dữ liệu", use_container_width=True):
             st.session_state.category_last_refresh = datetime.now()
             st.rerun()
         st.markdown(f"**Cập nhật lần cuối:** {st.session_state.category_last_refresh.strftime('%d/%m/%Y %H:%M:%S')}")
@@ -615,7 +613,7 @@ elif st.session_state.role == "KETOAN":
                     }).set_table_styles([
                         {'selector': 'th', 'props': [('background-color', '#0b77cc'), ('color', 'white'), ('font-weight', 'bold'), ('font-size','14px')]}
                     ])
-                    st.dataframe(styled, width="stretch")
+                    st.dataframe(styled, use_container_width=True)
                 else:
                     st.info(f"Không có dữ liệu {title}.")
             else:
@@ -699,7 +697,7 @@ elif st.session_state.role == "QUANLY":
 
         filter_click = col4.button("Lọc dữ liệu")
 
-        if st.button("Thực thi ETL", width="stretch"):
+        if st.button("Thực thi ETL", use_container_width=True):
             etl_res = requests.post(f"{API_URL}/api/etl")
             if etl_res.status_code == 200:
                 st.success("ETL đã được thực thi thành công. Dữ liệu dashboard đã được cập nhật.")
@@ -712,7 +710,7 @@ elif st.session_state.role == "QUANLY":
         last_update = requests.get(f"{API_URL}/api/dashboard/last_update")
         if last_update.status_code == 200 and last_update.json().get('latest_update'):
             c_title.markdown(f"<span style='color:#0b6623'>Dữ liệu OLAP cập nhật gần nhất: {last_update.json().get('latest_update')}</span>", unsafe_allow_html=True)
-        if c_btn.button("Tải lại bộ đệm", width="stretch"):
+        if c_btn.button("Tải lại bộ đệm", use_container_width=True):
             st.rerun()
 
         if start_date > end_date:
@@ -764,7 +762,7 @@ elif st.session_state.role == "QUANLY":
                         df_dw_display['Tổng Chi Đã Duyệt'] = df_dw_display['Tổng Chi Đã Duyệt'].apply(lambda x: format_currency(float(x)))
                         df_dw_display['Lợi nhuận'] = df_dw_display['Lợi nhuận'].apply(lambda x: format_currency(float(x)))
                         styled_dw = df_dw_display.style.map(highlight_profit_cell, subset=["Lợi nhuận"])
-                        st.dataframe(styled_dw, width="stretch")
+                        st.dataframe(styled_dw, use_container_width=True)
                         st.markdown("---")
 
                     last_update = requests.get(f"{API_URL}/api/dashboard/last_update")
@@ -776,12 +774,12 @@ elif st.session_state.role == "QUANLY":
                     st.markdown(f"**📈 Biểu đồ Khảo sát Dòng tiền** (Từ {start_date.strftime('%d/%m/%Y %H:%M')} đến {end_date.strftime('%d/%m/%Y %H:%M')}{update_info})")
                     fig_line = px.line(df_dw, x='ngay', y=['tong_thu', 'tong_chi_da_duyet'], labels={'value': 'Giá trị', 'ngay': 'Kỳ báo cáo', 'variable': 'Chỉ tiêu'}, markers=True)
                     fig_line.update_layout(transition={'duration': 500, 'easing': 'cubic-in-out'}, plot_bgcolor='#f9fbff')
-                    st.plotly_chart(fig_line, width="stretch")
+                    st.plotly_chart(fig_line, use_container_width=True)
                     st.markdown(f"**📊 Biểu đồ Lợi nhuận Theo Ngày** (Từ {start_date.strftime('%d/%m/%Y %H:%M')} đến {end_date.strftime('%d/%m/%Y %H:%M')}{update_info})")
                     fig_bar = px.bar(df_dw, x='ngay', y='loi_nhuan', title='Lợi nhuận', labels={'loi_nhuan': 'Lợi nhuận', 'ngay': 'Ngày'}, color='loi_nhuan', color_continuous_scale=['red', 'green'])
                     fig_bar.update_traces(marker_line_width=0)
                     fig_bar.update_layout(transition={'duration': 500}, plot_bgcolor='#f9fbff')
-                    st.plotly_chart(fig_bar, width="stretch")
+                    st.plotly_chart(fig_bar, use_container_width=True)
 
                     if st.button("🔄 Tải lại dữ liệu biểu đồ", help="Cập nhật dữ liệu từ database mới nhất"):
                         st.rerun()
@@ -790,7 +788,7 @@ elif st.session_state.role == "QUANLY":
                     if 'trang_thai_kd' in df_dw.columns:
                         status_counts = df_dw['trang_thai_kd'].value_counts()
                         fig_pie = px.pie(values=status_counts.values, names=status_counts.index, title='Trạng thái Lợi nhuận')
-                        st.plotly_chart(fig_pie, width="stretch")
+                        st.plotly_chart(fig_pie, use_container_width=True)
 
                     st.markdown(f"<span style='color:#666'>Kỳ lọc: {period_type}. Tổng số bản ghi OLAP: {len(df_dw)}. Dữ liệu tự động cập nhật khi có giao dịch mới.</span>", unsafe_allow_html=True)
                     st.markdown("**Bảng Tổng hợp Sổ cái**")
@@ -801,7 +799,7 @@ elif st.session_state.role == "QUANLY":
                     styled_dw = df_dw_display.style.map(highlight_profit_cell, subset=["Lợi nhuận"])
                     csv_report = df_dw.to_csv(index=False).encode('utf-8')
                     st.download_button("Tải xuống báo cáo Dashboard", csv_report, file_name=f"dashboard_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}.csv", mime='text/csv')
-                    st.dataframe(styled_dw, width="stretch", hide_index=True)
+                    st.dataframe(styled_dw, use_container_width=True, hide_index=True)
                     with st.expander("Chi tiết giao dịch thu đã lọc"):
                         raw_params = {"start_date": start_date.strftime('%Y-%m-%d'), "end_date": end_date.strftime('%Y-%m-%d'), "start_time": start_time, "end_time": end_time}
                         res_thu = requests.get(f"{API_URL}/api/thu/range", params=raw_params)
@@ -810,7 +808,7 @@ elif st.session_state.role == "QUANLY":
                             if not df_thu.empty:
                                 df_thu_display = df_thu.copy()
                                 df_thu_display['so_tien'] = df_thu_display['so_tien'].apply(format_currency)
-                                st.dataframe(df_thu_display, width="stretch", hide_index=True)
+                                st.dataframe(df_thu_display, use_container_width=True, hide_index=True)
                             else:
                                 st.info("Không có giao dịch thu trong khoảng thời gian này.")
                         else:
@@ -823,7 +821,7 @@ elif st.session_state.role == "QUANLY":
                             if not df_chi.empty:
                                 df_chi_display = df_chi.copy()
                                 df_chi_display['so_tien'] = df_chi_display['so_tien'].apply(format_currency)
-                                st.dataframe(df_chi_display, width="stretch", hide_index=True)
+                                st.dataframe(df_chi_display, use_container_width=True, hide_index=True)
                             else:
                                 st.info("Không có giao dịch chi trong khoảng thời gian này.")
                         else:
@@ -841,7 +839,7 @@ elif st.session_state.role == "QUANLY":
             if not df.empty:
                 csv_thu = df.to_csv(index=False).encode('utf-8')
                 st.download_button("Xuất CSV Thu", csv_thu, file_name="thu_active.csv", mime='text/csv')
-                st.dataframe(df, width="stretch")
+                st.dataframe(df, use_container_width=True)
             else:
                 st.info("Không có dữ liệu.")
     
@@ -853,7 +851,7 @@ elif st.session_state.role == "QUANLY":
             if not df.empty:
                 csv_chi = df.to_csv(index=False).encode('utf-8')
                 st.download_button("Xuất CSV Chi", csv_chi, file_name="chi_active.csv", mime='text/csv')
-                st.dataframe(df, width="stretch")
+                st.dataframe(df, use_container_width=True)
             else:
                 st.info("Không có dữ liệu.")
     
@@ -863,7 +861,7 @@ elif st.session_state.role == "QUANLY":
         if res.status_code == 200:
             df = pd.DataFrame(res.json())
             if not df.empty:
-                st.dataframe(df, width="stretch")
+                st.dataframe(df, use_container_width=True)
             else:
                 st.info("Không có dữ liệu.")
     
@@ -926,8 +924,7 @@ elif st.session_state.role == "QUANLY":
             with st.chat_message("user"):
                 st.write(user_input)
             
-
-                    response = f"Lỗi AI: {str(e)}"
+            response = f"Đang xử lý: {user_input}"
             
             st.session_state.chat_history.append({"role": "assistant", "content": response})
             with st.chat_message("assistant"):
